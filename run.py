@@ -90,6 +90,7 @@ def CreateDataset(typeName,split_ratio=0.2,target='SV'):
                     break
                 else:
                     cut_index += dict_count[speaker]
+            print("cut_index=",cut_index)
             val_paths,val_labels,train_paths,train_labels = split_perspeaker_audios(audio_paths[:cut_index],audio_labels[:cut_index],split_ratio)
             ismember = np.ones(len(train_labels)).tolist()
             # non-speaker
@@ -259,15 +260,10 @@ def speaker_verification(distances,enroll_y):
     enroll_y = list(set(enroll_y))
     score_index = distances.argmax(axis=0)
     distance_max = distances.max(axis=0)
-    print(distance_max)
-    # get threshold
-    distance_list = sorted(distances.max(axis=0),reverse=True)
-    threshold = distance_list[distances.shape[1]//2]
-    print("threshold=",threshold)
     ismember_pre = []
     k = 0
     for i in score_index:
-        if distance_max[k]>=threshold:
+        if distance_max[k] >= c.THRESHOLD:
             ismember_pre.append(1)
         else:
             ismember_pre.append(0)
@@ -337,8 +333,8 @@ def main(typeName,train_dir,test_dir):
             ismember_pre = speaker_verification(distances,enroll_y)
             df = pd.read_csv(c.ANNONATION_FILE)
             ismember_true = list(map(int,df['Ismember']))
-            print(ismember_true[:10])
-            print(ismember_pre[:10])
+            print(ismember_true[:20])
+            print(ismember_pre[:20])
             evaluate_metrics(ismember_true,ismember_pre)
         else:
             print("you should set the c.TARGET to SI and SV")
