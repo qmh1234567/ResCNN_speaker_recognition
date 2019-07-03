@@ -337,6 +337,8 @@ def main(typeName,train_dir,test_dir):
             ismember_pre = speaker_verification(distances,enroll_y)
             df = pd.read_csv(c.ANNONATION_FILE)
             ismember_true = list(map(int,df['Ismember']))
+            print(ismember_true[:10])
+            print(ismember_pre[:10])
             evaluate_metrics(ismember_true,ismember_pre)
         else:
             print("you should set the c.TARGET to SI and SV")
