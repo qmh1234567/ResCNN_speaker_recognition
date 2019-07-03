@@ -259,6 +259,7 @@ def speaker_verification(distances,enroll_y):
     enroll_y = list(set(enroll_y))
     score_index = distances.argmax(axis=0)
     distance_max = distances.max(axis=0)
+    print(distance_max)
     # get threshold
     distance_list = sorted(distances.max(axis=0),reverse=True)
     threshold = distance_list[distances.shape[1]//2]
@@ -286,9 +287,9 @@ def evaluate_metrics(y_true,y_pre):
 
 def main(typeName,train_dir,test_dir):
     #  load model
-    model = models.ResNet(c.INPUT_SHPE)
+    # model = models.ResNet(c.INPUT_SHPE)
     # model = testmodel.vggvox_model(c.INPUT_SHPE)
-    # model = models.Deep_speaker_model(c.INPUT_SHPE)
+    model = models.Deep_speaker_model(c.INPUT_SHPE)
    
     if typeName.startswith('train'):
         if not os.path.exists(c.MODEL_DIR):
@@ -317,7 +318,7 @@ def main(typeName,train_dir,test_dir):
         test_dataset,enroll_dataset = CreateDataset(typeName,split_ratio=0.1,target=c.TARGET)
         labels_to_id = Map_label_to_dict(labels=enroll_dataset[1])
         # load weights
-        model.load_weights(f'{c.MODEL_DIR}/save/rescnn_0.77.h5',by_name='True')
+        model.load_weights(f'{c.MODEL_DIR}/save/deepspeaker_0.77.h5',by_name='True')
         # load all data
         print("loading data...")
         (enroll_x,enroll_y) = load_all_data(enroll_dataset,'enroll',test_dir)
@@ -332,14 +333,15 @@ def main(typeName,train_dir,test_dir):
             result = compute_result(test_y_pre,test_y)
             score = sum(result)/len(result)
             print(f"score={score}")
-        else:
+        elif c.TARGET == 'SV':
             ismember_pre = speaker_verification(distances,enroll_y)
             df = pd.read_csv(c.ANNONATION_FILE)
             ismember_true = list(map(int,df['Ismember']))
             evaluate_metrics(ismember_true,ismember_pre)
+        else:
+            print("you should set the c.TARGET to SI and SV")
+            exit(-1)
         
-    
-
 
 if __name__ == "__main__":
     # if len(sys.argv) < 2 or sys.argv[1] not in ['train', 'test']:
