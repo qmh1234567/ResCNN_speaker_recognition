@@ -83,15 +83,18 @@ def CreateDataset(typeName,split_ratio=0.2,target='SV'):
         if target == 'SI':
             val_paths,val_labels,train_paths,train_labels = split_perspeaker_audios(audio_paths,audio_labels,split_ratio)
         else:
-            dict_count = Counter(audio_labels)    
+            dict_count = Counter(audio_labels)   
             cut_index = 0
-            for index,speaker in enumerate(set(audio_labels)):
+            # remove repeat and rank in order
+            new_audio_labels = list(set(audio_labels))
+            new_audio_labels.sort(key=audio_labels.index)
+            for index,speaker in enumerate(new_audio_labels):
                 if index == c.ENROLL_NUMBER:
                     break
                 else:
                     cut_index += dict_count[speaker]
-            print("cut_index=",cut_index)
             val_paths,val_labels,train_paths,train_labels = split_perspeaker_audios(audio_paths[:cut_index],audio_labels[:cut_index],split_ratio)
+            
             ismember = np.ones(len(train_labels)).tolist()
             # non-speaker
             train_paths.extend(audio_paths[cut_index:])
@@ -217,10 +220,14 @@ def caculate_distance(enroll_dataset,enroll_pre,test_pre):
     # each person get a enroll_pre
     speakers_pre = []
     speakers_labels = []
-    for speaker in set(enroll_dataset[1]):
+    # remove repeat
+    enroll_speakers = list(set(enroll_dataset[1]))
+    enroll_speakers.sort(key=enroll_dataset[1].index)
+    for speaker in enroll_speakers:
         start = enroll_dataset[1].index(speaker)
         speaker_pre = enroll_pre[start:dict_count[speaker]+start]
         speakers_pre.append(np.mean(speaker_pre,axis=0))
+
     enroll_pre = np.array(speakers_pre)
     print("new_enroll_pre.shape=",enroll_pre.shape)
     # caculate distance
@@ -240,12 +247,13 @@ def caculate_distance(enroll_dataset,enroll_pre,test_pre):
 
 def speaker_identification(enroll_dataset,distances,enroll_y):
     #  remove repeat
-    enroll_y = list(set(enroll_y))
+    new_enroll_y = list(set(enroll_y))
+    new_enroll_y.sort(key=list(enroll_y).index)
     #  return the index of max distance of each sentence
     socre_index = distances.argmax(axis=0)
     y_pre = []
     for i in socre_index:
-        y_pre.append(enroll_y[i])
+        y_pre.append(new_enroll_y[i])
     return y_pre
 
 def compute_result(y_pre,y_true):  
@@ -255,9 +263,7 @@ def compute_result(y_pre,y_true):
     return result
 
 
-def speaker_verification(distances,enroll_y):
-    #  remove repeat
-    enroll_y = list(set(enroll_y))
+def speaker_verification(distances):
     score_index = distances.argmax(axis=0)
     distance_max = distances.max(axis=0)
     ismember_pre = []
@@ -330,7 +336,7 @@ def main(typeName,train_dir,test_dir):
             score = sum(result)/len(result)
             print(f"score={score}")
         elif c.TARGET == 'SV':
-            ismember_pre = speaker_verification(distances,enroll_y)
+            ismember_pre = speaker_verification(distances)
             df = pd.read_csv(c.ANNONATION_FILE)
             ismember_true = list(map(int,df['Ismember']))
             print(ismember_true[:20])
