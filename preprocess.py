@@ -201,7 +201,7 @@ if __name__ == "__main__":
 #    preprocess_to_npy(c.TRAIN_DEV_SET,c.CLASS,'train_vox')
 #    preprocess_to_npy(c.TEST_SET,c.CLASS,'test_vox')
     #  library speech
-    # preprocess_to_npy(c.TRAIN_DEV_SET_LB,c.CLASS,'train_lb')
+    preprocess_to_npy(c.TRAIN_DEV_SET_LB,c.CLASS,'train_lb')
     preprocess_to_npy(c.TEST_SET_LB,c.CLASS,'test_lb')
     # npyfile = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/train-clean-100/LibriSpeech/train-clean-100/npy/19/19_198_19-198-0000.npy'
     # print(np.load(npyfile).shape)
