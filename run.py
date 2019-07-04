@@ -266,6 +266,9 @@ def compute_result(y_pre,y_true):
 def speaker_verification(distances):
     score_index = distances.argmax(axis=0)
     distance_max = distances.max(axis=0)
+    print(distance_max[:100])
+    print(np.mean(np.array(distance_max)))
+    print(np.median(np.array(distance_max)))
     ismember_pre = []
     k = 0
     for i in score_index:
@@ -289,9 +292,9 @@ def evaluate_metrics(y_true,y_pre):
 
 def main(typeName,train_dir,test_dir):
     #  load model
-    # model = models.ResNet(c.INPUT_SHPE)
+    model = models.ResNet(c.INPUT_SHPE)
     # model = testmodel.vggvox_model(c.INPUT_SHPE)
-    model = models.Deep_speaker_model(c.INPUT_SHPE)
+    # model = models.Deep_speaker_model(c.INPUT_SHPE)
    
     if typeName.startswith('train'):
         if not os.path.exists(c.MODEL_DIR):
@@ -320,7 +323,7 @@ def main(typeName,train_dir,test_dir):
         test_dataset,enroll_dataset = CreateDataset(typeName,split_ratio=0.1,target=c.TARGET)
         labels_to_id = Map_label_to_dict(labels=enroll_dataset[1])
         # load weights
-        model.load_weights(f'{c.MODEL_DIR}/save/deepspeaker_0.77.h5',by_name='True')
+        model.load_weights(f'{c.MODEL_DIR}/save/rescnn_0.77.h5',by_name='True')
         # load all data
         print("loading data...")
         (enroll_x,enroll_y) = load_all_data(enroll_dataset,'enroll',test_dir)

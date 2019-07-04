@@ -39,8 +39,6 @@ def res_conv_block(x,filters,strides,name):
 # ResNet
 def ResNet(input_shape):
     x_in = Input(input_shape,name='input')
-    # 帧数 特征数  通道数
-    # x = Permute((2,1,3),name='permute')(x_in)
 
     x = Conv2D(64,(5,5),strides=(2,2),padding='same',name='conv1')(x_in)
     x = BatchNormalization(name="bn1")(x)
@@ -67,6 +65,19 @@ def ResNet(input_shape):
     model = Model(inputs=[x_in],outputs=[x],name='ResCNN')
     # model.summary()
     return model
+
+# # proposed model
+# def SE_ResNet(input_shape):
+#     x_in =Input(input_shape,name='input')
+#     x = Conv2D(64,(5,5),strides=(2,2),padding='same',name='conv1')(x_in)
+#     x = BatchNormalization(name='bn1')(x)
+#     x = Activation('relu')(x)
+#     x = MaxPool2D((2,2),strides=(2,2),padding='same',name='pool1')(x)
+
+#     x = res_conv_block(x,(64,64,256),(1,1),name='block1')
+
+    
+
 
 def conv_pool(x,layerid,filters,kernal_size,conv_strides,pool_size=None,pool_strides=None,pool=None):
     x = Conv2D(filters,kernal_size,strides= conv_strides,padding='same',name=f'conv{layerid}')(x)
@@ -112,7 +123,6 @@ def identity_block(x_in,kernel_size,filters,name):
     return x
 
 def Deep_speaker_model(input_shape):
-
     def conv_and_res_block(x_in,filters):
         x = Conv2D(filters,kernel_size=(5,5),strides=(2,2),
         padding='same',kernel_regularizer=regularizers.l2(l=c.WEIGHT_DECAY),

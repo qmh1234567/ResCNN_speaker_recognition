@@ -42,4 +42,4 @@ LEARN_RATE = 0.0001
 
 #TEST
 ANNONATION_FILE = './dataset/annonation.csv'
-THRESHOLD = 0.5
+THRESHOLD = 0.66
