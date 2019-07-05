@@ -23,6 +23,7 @@ from keras.layers import Flatten
 import testmodel
 from sklearn import metrics
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # OPTIONAL: control usage of GPU
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -94,7 +95,7 @@ def CreateDataset(typeName,split_ratio=0.2,target='SV'):
                 else:
                     cut_index += dict_count[speaker]
             val_paths,val_labels,train_paths,train_labels = split_perspeaker_audios(audio_paths[:cut_index],audio_labels[:cut_index],split_ratio)
-            
+            # print(val_paths)
             ismember = np.ones(len(train_labels)).tolist()
             # non-speaker
             train_paths.extend(audio_paths[cut_index:])
@@ -160,8 +161,6 @@ def load_validation_data(dataset,labels_to_id,num_class,data_dir):
 
 def load_all_data(dataset,typeName,data_dir):
     (path,labels) = dataset
-    if typeName.startswith('test'):
-        path,labels = shuffle_data(path,labels)
     X,Y = [],[]
     bar = Bar('loading data',max=len(path),fill='#',suffix='%(percent)d%%')
     for index,audio in enumerate(path):
@@ -219,7 +218,6 @@ def caculate_distance(enroll_dataset,enroll_pre,test_pre):
     print(dict_count)
     # each person get a enroll_pre
     speakers_pre = []
-    speakers_labels = []
     # remove repeat
     enroll_speakers = list(set(enroll_dataset[1]))
     enroll_speakers.sort(key=enroll_dataset[1].index)
@@ -263,50 +261,58 @@ def compute_result(y_pre,y_true):
     return result
 
 
-def speaker_verification(distances):
-    score_index = distances.argmax(axis=0)
-    distance_max = distances.max(axis=0)
-    print(distance_max[:100])
-    print(np.mean(np.array(distance_max)))
-    print(np.median(np.array(distance_max)))
-    ismember_pre = []
-    k = 0
-    for i in score_index:
-        if distance_max[k] >= c.THRESHOLD:
-            ismember_pre.append(1)
-        else:
-            ismember_pre.append(0)
-        k+= 1
-    return ismember_pre
-    
-
 def evaluate_metrics(y_true,y_pre):
     fpr,tpr,thresholds = metrics.roc_curve(y_true,y_pre,pos_label=1)
     auc_score = metrics.roc_auc_score(y_true,y_pre,average='macro')
+    acc = metrics.accuracy_score(y_true,y_pre)
     prauc = metrics.average_precision_score(y_true,y_pre,average='macro')
     eer = fpr[np.abs(fpr-(1-tpr)).argmin(0)]
-    eer = np.mean(eer)
-    auc_score = np.mean(auc_score)
-    print(f'eer={eer}\t prauc={prauc} \t auc_score={auc_score}\t')
-    return eer,auc_score,prauc,fpr,tpr
+    return [eer,prauc,acc,auc_score,prauc,fpr,tpr]
+
+def speaker_verification(distances,ismember_true):
+    score_index = distances.argmax(axis=0)
+    distance_max = distances.max(axis=0)
+    min_threshold = min(distance_max)
+    max_threshold = max(distance_max)
+    threshold_list = np.linspace(min_threshold,max_threshold,100)
+    eval_list = []
+    optimal_eval_list=[0]*7
+    for threshold in threshold_list:
+        ismember_pre = []
+        k = 0
+        for i in score_index:
+            if distance_max[k] >= threshold:
+                ismember_pre.append(1)
+            else:
+                ismember_pre.append(0)
+            k+= 1
+        # evaluate
+        eval_list= evaluate_metrics(ismember_true,ismember_pre)
+        if eval_list[2] > optimal_eval_list[2]:
+            optimal_eval_list = eval_list
+
+    eer,prauc,acc,auc_score,prauc,fpr,tpr = optimal_eval_list
+    print(f'eer={eer}\t prauc={prauc} \t acc={acc}\t auc_score={auc_score}\t')
+
+    return ismember_pre
+    
 
 def main(typeName,train_dir,test_dir):
-    #  load model
     model = models.ResNet(c.INPUT_SHPE)
     # model = testmodel.vggvox_model(c.INPUT_SHPE)
     # model = models.Deep_speaker_model(c.INPUT_SHPE)
+    # model = models.SE_ResNet(c.INPUT_SHPE)
    
     if typeName.startswith('train'):
         if not os.path.exists(c.MODEL_DIR):
             os.mkdir(c.MODEL_DIR)
-        train_dataset,val_dataset = CreateDataset(typeName,split_ratio=0.2)
+        train_dataset,val_dataset = CreateDataset(typeName,split_ratio=0.3)
         labels_to_id = Map_label_to_dict(labels=train_dataset[1])
         # add softmax layer
         x = model.output
         x = Dense(c.CLASS,activation='softmax',name=f'softmax')(x)
         model = Model(model.input,x)  
         print(model.summary())
-        # exit()
         # train model 
         model.compile(loss='categorical_crossentropy',optimizer = Adam(lr=c.LEARN_RATE),
         metrics=['accuracy'])
@@ -339,12 +345,11 @@ def main(typeName,train_dir,test_dir):
             score = sum(result)/len(result)
             print(f"score={score}")
         elif c.TARGET == 'SV':
-            ismember_pre = speaker_verification(distances)
             df = pd.read_csv(c.ANNONATION_FILE)
             ismember_true = list(map(int,df['Ismember']))
-            print(ismember_true[:20])
-            print(ismember_pre[:20])
-            evaluate_metrics(ismember_true,ismember_pre)
+            ismember_pre = speaker_verification(distances,ismember_true)
+            
+            # evaluate_metrics(ismember_true,ismember_pre)
         else:
             print("you should set the c.TARGET to SI and SV")
             exit(-1)

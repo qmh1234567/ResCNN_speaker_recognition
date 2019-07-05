@@ -8,7 +8,7 @@ import keras.backend as K
 from keras.layers import Input
 from keras.layers.normalization import BatchNormalization
 from keras.layers import Conv2D, MaxPool2D, Dropout,Activation
-from keras.layers import Dense,Lambda,Add,GlobalAveragePooling2D,ZeroPadding2D
+from keras.layers import Dense,Lambda,Add,GlobalAveragePooling2D,ZeroPadding2D,Multiply
 from keras.regularizers import l2
 from keras import Model
 import constants as c
@@ -66,19 +66,68 @@ def ResNet(input_shape):
     # model.summary()
     return model
 
-# # proposed model
-# def SE_ResNet(input_shape):
-#     x_in =Input(input_shape,name='input')
-#     x = Conv2D(64,(5,5),strides=(2,2),padding='same',name='conv1')(x_in)
-#     x = BatchNormalization(name='bn1')(x)
-#     x = Activation('relu')(x)
-#     x = MaxPool2D((2,2),strides=(2,2),padding='same',name='pool1')(x)
+def squeeze_excitation(x,reduction_ratio,name):
+    out_dim = int(x.shape[-1].value)
+    x = GlobalAveragePooling2D(name=f'{name}_squeeze')(x)
+    x = Dense(out_dim//reduction_ratio,activation='relu',name=f'{name}_ex0')(x)
+    x = Dense(out_dim,activation='sigmoid',name=f'{name}_ex1')(x)
+    return x
 
-#     x = res_conv_block(x,(64,64,256),(1,1),name='block1')
+def conv_block(x,filters,kernal_size,stride,name,stage,i,padding='same'):
+    x = Conv2D(filters,kernal_size,strides=stride,padding=padding,name=f'{name}_conv{stage}_{i}',
+        kernel_regularizer = regularizers.l2(l=c.WEIGHT_DECAY))(x)
+    x = BatchNormalization(name=f'{name}_bn{stage}_{i}')(x)
+    if stage != 'c':
+        x = Activation('relu',name=f'{name}_relu{stage}_{i}')(x)
+    return x 
 
+
+def residual_block(x,outdim,stride,name):
+    input_dim = int(x.shape[-1].value)
+    shortcut = Conv2D(outdim,kernel_size=(1,1),strides=stride,name=f'{name}_scut_conv',
+    kernel_regularizer = regularizers.l2(l=c.WEIGHT_DECAY))(x)
+    shortcut = BatchNormalization(name=f'{name}_scut_norm')(shortcut)
+
+    for i in range(c.BLOCK_NUM):
+        if i>0 :
+           stride = 1
+           x = Activation('relu',name=f'{name}_relu{i-1}')(x)
+           x = Dropout(c.DROPOUT,name=f'{name}_drop{i-1}')(x)
+
+        x = conv_block(x,input_dim//2,(1,1),stride,name,'a',i,padding='valid')
+        x = conv_block(x,input_dim//2,(3,3),(1,1),name,'b',i,padding='same')
+        x = conv_block(x,outdim,(1,1),(1,1),name,'c',i,padding='valid')
     
+    # add SE
+    x = Multiply(name=f'{name}_scale')([x,squeeze_excitation(x,c.REDUCTION_RATIO,name)])
+    x = Add(name=f'{name}_scut')([shortcut,x])
+    x = Activation('relu',name=f'{name}_relu')(x)
+    return x 
 
 
+# proposed model
+def SE_ResNet(input_shape):
+    # first layer
+    x_in =Input(input_shape,name='input')
+    x = Conv2D(64,(3,3),strides=(1,1),padding='same',name='conv1')(x_in)
+    x = BatchNormalization(name='bn1')(x)
+    x = Activation('relu')(x)
+    x = MaxPool2D((2,2),strides=(2,2),padding='same',name='pool1')(x)
+
+    x = residual_block(x,outdim=64,stride=(2,2),name='block1')
+    x = residual_block(x,outdim=128,stride=(2,2),name='block2')
+    x = residual_block(x,outdim=256,stride=(2,2),name='block3')
+    # x = residual_block(x,outdim=512,stride=(2,2),name='block4')
+
+    x = Conv2D(256,(x.shape[1].value,1),strides = (1,1),name='conv5')(x)
+    x = BatchNormalization(name='bn5')(x)
+    x = Activation('relu')(x)
+    x = GlobalAveragePooling2D(name='gpool')(x)
+    return Model(inputs=[x_in],outputs=[x],name='SEResNet')
+
+
+
+# vggvox1
 def conv_pool(x,layerid,filters,kernal_size,conv_strides,pool_size=None,pool_strides=None,pool=None):
     x = Conv2D(filters,kernal_size,strides= conv_strides,padding='same',name=f'conv{layerid}')(x)
     x = BatchNormalization(name=f'bn{layerid}')(x)
@@ -87,7 +136,6 @@ def conv_pool(x,layerid,filters,kernal_size,conv_strides,pool_size=None,pool_str
         x = MaxPool2D(pool_size,pool_strides,name=f'mpool{layerid}')(x)
     return x
 
-# vggvox1
 def vggvox1_cnn(input_shape):
     x_in = Input(input_shape,name='input')
     x = conv_pool(x_in,1,96,(7,7),(2,2),(3,3),(2,2),'max')
@@ -151,6 +199,7 @@ if __name__ == "__main__":
     
     # model = ResNet(c.INPUT_SHPE)
     # model = vggvox1_cnn((512,299,1))
-    model = Deep_speaker_model(c.INPUT_SHPE)
+    # model = Deep_speaker_model(c.INPUT_SHPE)
+    model = SE_ResNet(c.INPUT_SHPE)
     print(model.summary())
    

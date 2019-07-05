@@ -23,7 +23,7 @@ TRAIN_DEV_SET_LB = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Libr
 TEST_SET = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Voxceleb/vox_test_wav'
 TEST_SET_LB = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/test-clean/LibriSpeech/test-clean'
 
-TARGET = 'SV'
+TARGET = 'SI'
 ENROLL_NUMBER = 20
 
 CLASS = 251
@@ -31,6 +31,10 @@ DATASET_DIR = './dataset'
 
 # MODEL
 WEIGHT_DECAY = 0.00001
+REDUCTION_RATIO =4 #8
+BLOCK_NUM = 3 #2
+DROPOUT=0.2
+
 
 # TRAIN
 BATCH_SIZE = 16
@@ -42,4 +46,3 @@ LEARN_RATE = 0.0001
 
 #TEST
 ANNONATION_FILE = './dataset/annonation.csv'
-THRESHOLD = 0.66
