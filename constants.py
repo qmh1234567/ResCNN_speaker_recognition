@@ -19,9 +19,13 @@ FRAME_STEP = 0.01
 # DATASET
 TRAIN_DEV_SET = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Voxceleb/vox1_dev_wav/'
 TRAIN_DEV_SET_LB = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/train-clean-100/LibriSpeech/train-clean-100'
+TRAIN_DEV_SET_TIMIT = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/TIMIT/lisa/data/timit/raw/TIMIT/TRAIN'
+
 
 TEST_SET = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Voxceleb/vox_test_wav'
 TEST_SET_LB = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/test-clean/LibriSpeech/test-clean'
+TEST_SET_TIMIT = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/TIMIT/lisa/data/timit/raw/TIMIT/TEST'
+
 
 TARGET = 'SI'
 ENROLL_NUMBER = 20
@@ -31,7 +35,7 @@ DATASET_DIR = './dataset'
 
 # MODEL
 WEIGHT_DECAY = 0.00001
-REDUCTION_RATIO =4 #8
+REDUCTION_RATIO = 4 #8
 BLOCK_NUM = 3 #2
 DROPOUT=0.2
 

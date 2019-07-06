@@ -147,7 +147,8 @@ def load_validation_data(dataset,labels_to_id,num_class,data_dir):
         try:
             audio_info = os.path.splitext(audio)[0].split('/')[-3:]
             audio_name = '_'.join(audio_info)
-            x = np.load(f'{data_dir}/npy/{labels[index]}/{audio_name}.npy')
+            # x = np.load(f'{data_dir}/npy/{labels[index]}/{audio_name}.npy')
+            x = np.load(f'{data_dir}/npy/{audio_name}.npy')
             if x.ndim !=3 :
                 x = x[:,:,np.newaxis]
             X.append(x)
@@ -168,7 +169,8 @@ def load_all_data(dataset,typeName,data_dir):
         try:
             audio_info = os.path.splitext(audio)[0].split('/')[-3:]
             audio_name = '_'.join(audio_info)
-            x = np.load(f'{data_dir}/npy/{labels[index]}/{audio_name}.npy')
+            # x = np.load(f'{data_dir}/npy/{labels[index]}/{audio_name}.npy')
+            x = np.load(f'{data_dir}/npy/{audio_name}.npy')
             if x.ndim!=3:
                 x = x[:,:,np.newaxis]
             X.append(x)
@@ -185,7 +187,8 @@ def load_each_batch(dataset,labels_to_id,batch_start,batch_end,num_class,data_di
         try:
             audio_info = os.path.splitext(paths[i])[0].split('/')[-3:]
             audio_name = '_'.join(audio_info)
-            x = np.load(f'{data_dir}/npy/{labels[i]}/{audio_name}.npy')
+            # x = np.load(f'{data_dir}/npy/{labels[i]}/{audio_name}.npy')
+            x = np.load(f'{data_dir}/npy/{audio_name}.npy')
             # increase channel
             if x.ndim!=3:
                 x = x[:,:,np.newaxis]  
@@ -298,10 +301,10 @@ def speaker_verification(distances,ismember_true):
     
 
 def main(typeName,train_dir,test_dir):
-    model = models.ResNet(c.INPUT_SHPE)
+    # model = models.ResNet(c.INPUT_SHPE)
     # model = testmodel.vggvox_model(c.INPUT_SHPE)
     # model = models.Deep_speaker_model(c.INPUT_SHPE)
-    # model = models.SE_ResNet(c.INPUT_SHPE)
+    model = models.SE_ResNet(c.INPUT_SHPE)
    
     if typeName.startswith('train'):
         if not os.path.exists(c.MODEL_DIR):
@@ -329,7 +332,7 @@ def main(typeName,train_dir,test_dir):
         test_dataset,enroll_dataset = CreateDataset(typeName,split_ratio=0.1,target=c.TARGET)
         labels_to_id = Map_label_to_dict(labels=enroll_dataset[1])
         # load weights
-        model.load_weights(f'{c.MODEL_DIR}/save/rescnn_0.77.h5',by_name='True')
+        model.load_weights(f'{c.MODEL_DIR}/best.h5',by_name='True')
         # load all data
         print("loading data...")
         (enroll_x,enroll_y) = load_all_data(enroll_dataset,'enroll',test_dir)
@@ -361,6 +364,6 @@ if __name__ == "__main__":
     #           '[run_type]: train | test')
     #     exit()
     mode = sys.argv[1]
-    train_dir = c.TRAIN_DEV_SET_LB
-    test_dir = c.TEST_SET_LB
+    train_dir = c.TRAIN_DEV_SET_TIMIT
+    test_dir = c.TEST_SET_TIMIT
     main(mode,train_dir,test_dir)
