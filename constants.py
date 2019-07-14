@@ -21,19 +21,19 @@ FRAME_STEP = 0.01
 TRAIN_DEV_SET = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Voxceleb/vox1_dev_wav/pickle'
 # TRAIN_DEV_SET_LB = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/train-clean-100/LibriSpeech/train-clean-100'
 # TRAIN_DEV_SET_TIMIT = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/TIMIT/lisa/data/timit/raw/TIMIT/TRAIN'
-# PICKLE_TRAIN_DIR = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/train-clean-100/LibriSpeech/train-clean-100/pickle'
-PICKLE_TRAIN_DIR = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/TIMIT/lisa/data/timit/raw/TIMIT/TRAIN/pickle'
+PICKLE_TRAIN_DIR = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/train-clean-100/LibriSpeech/train-clean-100/pickle'
+# PICKLE_TRAIN_DIR = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/TIMIT/lisa/data/timit/raw/TIMIT/TRAIN/pickle'
 # PICKLE_TRAIN_DIR = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/train-clean-100/LibriSpeech/train-clean-100/pickle_fft1'
 
 
 TEST_SET = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Voxceleb/vox_test_wav/pickle'
 # TEST_SET_LB = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/test-clean/LibriSpeech/test-clean'
 # TEST_SET_TIMIT = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/TIMIT/lisa/data/timit/raw/TIMIT/TEST'
-# PICKLE_TEST_DIR = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/test-clean/LibriSpeech/test-clean/pickle'
-PICKLE_TEST_DIR = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/TIMIT/lisa/data/timit/raw/TIMIT/TEST/pickle'
+PICKLE_TEST_DIR = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/test-clean/LibriSpeech/test-clean/pickle'
+# PICKLE_TEST_DIR = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/TIMIT/lisa/data/timit/raw/TIMIT/TEST/pickle'
 # PICKLE_TEST_DIR = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/test-clean/LibriSpeech/test-clean/pickle_fft1'
 
-TARGET = 'SI'
+TARGET = 'SV'
 ENROLL_NUMBER = 20
 
 # CLASS = 251

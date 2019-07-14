@@ -367,7 +367,7 @@ def main(typeName):
         elif c.TARGET == 'SV':
             df = pd.read_csv(c.ANNONATION_FILE)
             ismember_true = list(map(int, df['Ismember']))
-            np.save('./npys/perfectnew.npy',distances)
+            # np.save('./npys/perfect_noELU.npy',distances)
             ismember_pre = speaker_verification(distances, ismember_true)
         else:
             print("you should set the c.TARGET to SI and SV")

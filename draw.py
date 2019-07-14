@@ -6,18 +6,21 @@ import matplotlib.pyplot as plt
 
 def evaluate_metrics(y_true, y_pres):
     plt.figure()
+    aucs= [] 
     for y_pre in y_pres:
         fpr, tpr, thresholds = metrics.roc_curve(y_true, y_pre, pos_label=1)
         auc = metrics.auc(fpr, tpr)
-        plt.plot(fpr, tpr)
-    
+        plt.plot(fpr, tpr,label='AUC')
+        aucs.append(round(auc,4))
+
     # plt.plot(np.arange(1, 0, -0.01), np.arange(0, 1, 0.01))
-    plt.legend(['seresnet','seresnet-nodrop'])
+    plt.legend([f'seresnet,auc={aucs[0]}',f'seresnet-nodrop,auc={aucs[1]}',
+    f'seresnet-nose,auc={aucs[2]}',f'seresnet-nol2,auc={aucs[3]}',f'seresnet-noELU,auc={aucs[4]}'])
     plt.xlim([0, 1])
     plt.ylim([0, 1])
-    plt.xlabel('fpr')
-    plt.ylabel('tpr')
-    plt.title(f'ROC curve, AUC score={auc}')
+    plt.xlabel('false positive rate (fpr)')
+    plt.ylabel('true positive rate (tpr)')
+    plt.title(f'ROC-AUC curve')
     plt.show()
 
     threshold_index = np.argmin(abs(1-tpr - fpr))
@@ -33,21 +36,27 @@ def evaluate_metrics(y_true, y_pres):
 
 
 def speaker_verification(distances, ismember_true):
+    distance_maxs = []
     for distance in distances:
-        score_index = distances.argmax(axis=0)
-        distance_max = distances.max(axis=0)
+        print(type(distance))
+        score_index = distance.argmax(axis=0)
+        distance_max = distance.max(axis=0)
         distance_max = (distance_max + 1) / 2
-        y_pro, eer, prauc, acc, auc_score = evaluate_metrics(
-            ismember_true, distance_max)
+        distance_maxs.append(distance_max)
+    y_pro, eer, prauc, acc, auc_score = evaluate_metrics(
+            ismember_true, distance_maxs)
 
     print(f'eer={eer}\t prauc={prauc} \t acc={acc}\t auc_score={auc_score}\t')
     return y_pro
 
 
 if __name__ == "__main__":
-    distance1 = np.load('./npys/perfect.npy')
-    distance2 = np.load('./npys/perfectnew.npy')
-    distance = (distance1,distance2)
+    distance = np.load('./npys/perfect.npy')
+    distance_nodrp = np.load('./npys/perfect_nodrop.npy')
+    distance_nose = np.load('./npys/perfect_nose.npy')
+    distance_nol2 = np.load('./npys/perfect_nol2.npy')
+    distance_noELU = np.load('./npys/perfect_noELU.npy')
+    distances = (distance,distance_nodrp,distance_nose,distance_nol2,distance_noELU)
     df = pd.read_csv(c.ANNONATION_FILE)
     ismember_true = list(map(int,df["Ismember"]))
-    ismember_pre = speaker_verification(distance, ismember_true)
+    ismember_pre = speaker_verification(distances, ismember_true)

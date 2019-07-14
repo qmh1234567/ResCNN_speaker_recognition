@@ -109,12 +109,14 @@ def ResNet_50(input_shape):
     x = res_conv_block(x,(64,64,256),(1,1),name='block2')
     x = res_conv_block(x,(64,64,256),(1,1),name='block3')
 
-    x = res_conv_block(x,(128,128,512),(2,2),name='block4')
+    x = res_conv_block(x,(128,128,512),(1,1),name='block4')
     x = res_conv_block(x,(128,128,512),(1,1),name='block5')
     x = res_conv_block(x,(128,128,512),(1,1),name='block6')
-    x = res_conv_block(x,(128,128,512),(1,1),name='block7')
+    x = res_conv_block(x,(128,128,512),(2,2),name='block7')
 
     x = Conv2D(512,(x.shape[1].value,1),name='fc6')(x)
+    x = BatchNormalization(name="bn_fc6")(x)
+    x = Activation('relu',name='relu_fc6')(x)
     # avgpool
     # x = GlobalAveragePooling2D(name='avgPool')(x)
     x = Lambda(lambda y: K.mean(y,axis=[1,2]),name='avgpool')(x)
@@ -122,7 +124,6 @@ def ResNet_50(input_shape):
     model = Model(inputs=[x_in],outputs=[x],name='ResCNN')
     # model.summary()
     return model
-
 
 
 
