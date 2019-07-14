@@ -307,8 +307,9 @@ def speaker_verification(distances, ismember_true):
 def main(typeName):
     # model = models.Deep_speaker_model(c.INPUT_SHPE)
     model = models.SE_ResNet(c.INPUT_SHPE)
-    # model = models.RWCNN_LSTM(c.INPUT_SHPE)
     # model = models.Baseline_GRU(c.INPUT_SHPE)
+    # model = models.ResNet_34(c.INPUT_SHPE)
+    # model = models.ResNet_50(c.INPUT_SHPE)
 
     if typeName.startswith('train'):
         if not os.path.exists(c.MODEL_DIR):
@@ -323,7 +324,7 @@ def main(typeName):
         x = Dense(nclass, activation='softmax', name=f'softmax')(x)
         model = Model(model.input, x)
         print(model.summary())
-  
+        # exit()
         # train model
         sgd = optimizers.SGD(lr=c.LEARN_RATE,momentum=0.9) #TIMIT libri-seresnet
         # sgd = optimizers.Adam(lr=0.001)  #deep speaker
@@ -366,6 +367,7 @@ def main(typeName):
         elif c.TARGET == 'SV':
             df = pd.read_csv(c.ANNONATION_FILE)
             ismember_true = list(map(int, df['Ismember']))
+            np.save('./npys/perfectnew.npy',distances)
             ismember_pre = speaker_verification(distances, ismember_true)
         else:
             print("you should set the c.TARGET to SI and SV")

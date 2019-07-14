@@ -11,4 +11,4 @@ python newpreprocess.py --in_dir /home/dsp/Documents/wav_data/SpeakerRecognition
 
 python newpreprocess.1.py --in_dir /home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/test-clean/LibriSpeech/test-clean  --pk_dir /home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/test-clean/LibriSpeech/test-clean/pickle_fft  --data_type libri
 
-python newpreprocess.1.py --in_dir /home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/train-clean-100/LibriSpeech/train-clean-100  --pk_dir /home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/train-clean-100/LibriSpeech/train-clean-100/pickle_fft  --data_type libri
+python newpreprocess.1.py --in_dir /home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/train-clean-100/LibriSpeech/train-clean-100  --pk_dir /home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/train-clean-100/LibriSpeech/train-clean-100/pickle_fft1  --data_type libri

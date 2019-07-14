@@ -23,13 +23,15 @@ TRAIN_DEV_SET = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Voxcele
 # TRAIN_DEV_SET_TIMIT = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/TIMIT/lisa/data/timit/raw/TIMIT/TRAIN'
 # PICKLE_TRAIN_DIR = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/train-clean-100/LibriSpeech/train-clean-100/pickle'
 PICKLE_TRAIN_DIR = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/TIMIT/lisa/data/timit/raw/TIMIT/TRAIN/pickle'
+# PICKLE_TRAIN_DIR = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/train-clean-100/LibriSpeech/train-clean-100/pickle_fft1'
+
 
 TEST_SET = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Voxceleb/vox_test_wav/pickle'
 # TEST_SET_LB = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/test-clean/LibriSpeech/test-clean'
 # TEST_SET_TIMIT = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/TIMIT/lisa/data/timit/raw/TIMIT/TEST'
 # PICKLE_TEST_DIR = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/test-clean/LibriSpeech/test-clean/pickle'
 PICKLE_TEST_DIR = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/TIMIT/lisa/data/timit/raw/TIMIT/TEST/pickle'
-
+# PICKLE_TEST_DIR = '/home/dsp/Documents/wav_data/SpeakerRecognition_dataset/Library_speech_100/test-clean/LibriSpeech/test-clean/pickle_fft1'
 
 TARGET = 'SI'
 ENROLL_NUMBER = 20
@@ -41,16 +43,14 @@ DATASET_DIR = './dataset'
 
 # MODEL
 WEIGHT_DECAY = 0.00001 #0.00001
-REDUCTION_RATIO = 4 
+
+REDUCTION_RATIO = 8 
 BLOCK_NUM = 2
 DROPOUT= 0.1
 ALPHA = 0.1
 
 # TRAIN
 BATCH_SIZE = 32
-# INPUT_SHPE = (128,299,1)
-# frequency time channel
-# INPUT_SHPE = (64,299,3)
 INPUT_SHPE = (299,40,1)
 # INPUT_SHPE = (512,299,1)
 

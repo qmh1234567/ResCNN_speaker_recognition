@@ -23,52 +23,108 @@ from keras.layers import GRU,TimeDistributed,Flatten, LeakyReLU,ELU
 def res_conv_block(x,filters,strides,name):
     filter1,filer2,filter3 = filters
     # block a
-    x = Conv2D(filter1,(1,1),strides=strides,name=f'{name}_conva')(x)
+    x = Conv2D(filter1,(1,1),strides=strides,kernel_regularizer = regularizers.l2(l=c.WEIGHT_DECAY),name=f'{name}_conva')(x)
     x = BatchNormalization(name=f'{name}_bna')(x)
     x = Activation('relu',name=f'{name}_relua')(x)
     # block b
-    x = Conv2D(filer2,(3,3),padding='same',name=f'{name}_convb')(x)
+    x = Conv2D(filer2,(3,3),padding='same',kernel_regularizer = regularizers.l2(l=c.WEIGHT_DECAY),name=f'{name}_convb')(x)
     x = BatchNormalization(name=f'{name}_bnb')(x)
     x = Activation('relu',name=f'{name}_relub')(x)
     # block c
-    x = Conv2D(filter3,(1,1),name=f'{name}_convc')(x)
+    x = Conv2D(filter3,(1,1),name=f'{name}_convc',kernel_regularizer = regularizers.l2(l=c.WEIGHT_DECAY))(x)
     x = BatchNormalization(name=f'{name}_bnc')(x)
     # shortcut
-    shortcut = Conv2D(filter3,(1,1),strides=strides,name=f'{name}_shcut')(x)
+    shortcut = Conv2D(filter3,(1,1),strides=strides,name=f'{name}_shcut',kernel_regularizer = regularizers.l2(l=c.WEIGHT_DECAY))(x)
+    shortcut = BatchNormalization(name=f'{name}_stbn')(x)
+    x = Add(name=f'{name}_add')([x,shortcut])
+    x = Activation('relu',name=f'{name}_relu')(x)
+    return x
+
+def basic_block(x,filters,strides,name):
+    #block a
+    x = Conv2D(filters,(3,3),strides=strides,padding='same',
+    kernel_regularizer = regularizers.l2(l=c.WEIGHT_DECAY),name=f'{name}_conva')(x)
+    x = BatchNormalization(name=f'{name}_bna')(x)
+    x = Activation('relu',name=f'{name}_relua')(x)
+    #block b
+    x = Conv2D(filters,(3,3),strides=(1,1),padding='same',
+    kernel_regularizer = regularizers.l2(l=c.WEIGHT_DECAY),name=f'{name}_convb')(x)
+    x = BatchNormalization(name=f'{name}_bnb')(x) 
+    # shortcut
+    shortcut = Conv2D(filters,(1,1),strides=strides,padding='same',name=f'{name}_shcut')(x)
     shortcut = BatchNormalization(name=f'{name}_stbn')(x)
     x = Add(name=f'{name}_add')([x,shortcut])
     x = Activation('relu',name=f'{name}_relu')(x)
     return x
 
 # ResNet
-def ResNet(input_shape):
+def ResNet_34(input_shape):
     x_in = Input(input_shape,name='input')
+    x = Permute((2,1,3),name='permute')(x_in)
 
-    x = Conv2D(64,(5,5),strides=(2,2),padding='same',name='conv1')(x_in)
+    x = Conv2D(64,(7,7),strides=(2,2),padding='same',name='conv1',kernel_regularizer = regularizers.l2(l=c.WEIGHT_DECAY))(x)
     x = BatchNormalization(name="bn1")(x)
     x = Activation('relu')(x)
-    x = MaxPool2D((2,2),strides=(2,2),padding='same',name='pool1')(x)
+    x = MaxPool2D((3,3),strides=(2,2),padding='same',name='pool1')(x)
 
-    x = res_conv_block(x,(64,64,256),(1,1),name='block1')
-    x = res_conv_block(x,(64,64,256),(2,2),name='block2')
-    x = res_conv_block(x,(64,64,256),(2,2),name='block3')
+    for i in range(1,4):
+        x = basic_block(x,64,(1,1),name=f'block{i}')
 
-    x = res_conv_block(x,(128,128,512),(1,1),name='block4')
-    x = res_conv_block(x,(128,128,512),(2,2),name='block5')
-    x = res_conv_block(x,(128,128,512),(2,2),name='block6')
-    # x = res_conv_block(x,(128,128,512),(2,2),name='block5')
+    for i in range(4,8):
+        stride = (2,2) if i==4 else (1,1)
+        x = basic_block(x,128,stride,name=f'block{i}')
+    
+    for i in range(8,14):
+        stride = (2,2) if i==8 else (1,1)
+        x = basic_block(x,256,stride,name=f'block{i}')
+
+    for i in range(14,17):
+        stride = (2,2) if i==14 else (1,1)
+        x = basic_block(x,512,stride,name=f'block{i}')
+
+    x = Conv2D(512,(x.shape[1].value,1),name='fc6')(x)
+    
     # avgpool
-    # x = GlobalAveragePooling2D(name='avgPool')(x)
     x = Lambda(lambda y: K.mean(y,axis=[1,2]),name='avgpool')(x)
-    # fc2
-    x = Dense(512,name='fc2')(x)
-    x = BatchNormalization(name='fc_norm')(x)
-    x = Activation('relu',name='fc_relu')(x)
-    x = Dropout(0.2,name='final_drop')(x)
+
+    x = Dense(512,name='fc1')(x)
+    x = BatchNormalization(name='bn_fc1')(x)
+    x = Activation('relu',name='relu_fc1')(x)
 
     model = Model(inputs=[x_in],outputs=[x],name='ResCNN')
     # model.summary()
     return model
+
+# ResNet
+def ResNet_50(input_shape):
+    x_in = Input(input_shape,name='input')
+    x = Permute((2,1,3),name='permute')(x_in)
+
+    x = Conv2D(64,(7,7),strides=(2,2),padding='same',name='conv1',kernel_regularizer = regularizers.l2(l=c.WEIGHT_DECAY))(x)
+    x = BatchNormalization(name="bn1")(x)
+    x = Activation('relu')(x)
+    x = MaxPool2D((3,3),strides=(2,2),padding='same',name='pool1')(x)
+
+    x = res_conv_block(x,(64,64,256),(1,1),name='block1')
+    x = res_conv_block(x,(64,64,256),(1,1),name='block2')
+    x = res_conv_block(x,(64,64,256),(1,1),name='block3')
+
+    x = res_conv_block(x,(128,128,512),(2,2),name='block4')
+    x = res_conv_block(x,(128,128,512),(1,1),name='block5')
+    x = res_conv_block(x,(128,128,512),(1,1),name='block6')
+    x = res_conv_block(x,(128,128,512),(1,1),name='block7')
+
+    x = Conv2D(512,(x.shape[1].value,1),name='fc6')(x)
+    # avgpool
+    # x = GlobalAveragePooling2D(name='avgPool')(x)
+    x = Lambda(lambda y: K.mean(y,axis=[1,2]),name='avgpool')(x)
+
+    model = Model(inputs=[x_in],outputs=[x],name='ResCNN')
+    # model.summary()
+    return model
+
+
+
 
 def squeeze_excitation(x,reduction_ratio,name):
     out_dim = int(x.shape[-1].value)
@@ -153,8 +209,7 @@ def SE_ResNet(input_shape):
     x = Dense(512,name='fc1')(x)
     x = BatchNormalization(name='bn_fc1')(x)
     x = ELU(name=f'relu_fc1')(x)
-    # dropout
-    x = Dropout(0.2,name="final_drop")(x)
+
     return Model(inputs=[x_in],outputs=[x],name='SEResNet')
 
 
@@ -182,6 +237,22 @@ def vggvox1_cnn(input_shape):
     x = Dense(512,name='fc7',activation='relu')(x)
     model = Model(inputs=[x_in],outputs=[x],name='vggvox1_cnn')
     return model
+
+# def vggvox1_cnn(input_shape):
+#     x_in = Input(input_shape,name='input')
+#     x = conv_pool(x_in,1,96,(7,7),(1,1),(3,3),(2,2),'max')
+#     x = conv_pool(x,2,256,(5,5),(1,1),(3,3),(2,2),'max')
+#     x = conv_pool(x,3,384,(3,3),(1,1))
+#     x = conv_pool(x,4,256,(3,3),(1,1))
+#     x = conv_pool(x,5,256,(3,3),(1,1),(5,3),(2,2),'max')
+#     # fc 6
+#     x = Conv2D(256,(x.shape[1].value,1),name='fc6')(x)
+#     # apool6
+#     x = GlobalAveragePooling2D(name='avgPool')(x)
+#     # fc7
+#     x = Dense(512,name='fc7',activation='relu')(x)
+#     model = Model(inputs=[x_in],outputs=[x],name='vggvox1_cnn')
+#     return model
 
 # deep speaker
 def clipped_relu(inputs):
@@ -232,13 +303,11 @@ def Baseline_GRU(input_shape):
     x_in = Input(input_shape, name='input')
     x = Conv2D(64, (3, 3), strides=(1, 1), padding='same', name='conv1')(x_in)
     x = BatchNormalization(name='bn1')(x)
-    # x = Activation('relu')(x)
     x = ELU(name='relu1')(x)
     x = MaxPool2D((2, 2), strides=(2, 2), padding='same', name='pool1')(x)
 
     x = Conv2D(64, (3, 3), strides=(1, 1), padding='same', name='conv2')(x)
     x = BatchNormalization(name='bn2')(x)
-    # x = Activation('relu')(x)
     x = ELU(name='relu2')(x)
     x = MaxPool2D((2, 2), strides=(2, 2), padding='same', name='pool2')(x)
 
@@ -252,6 +321,7 @@ def Baseline_GRU(input_shape):
     x = ELU(name='relu3')(x)
 
     return Model(inputs=[x_in], outputs=[x], name='Baseline_GRU')
+
 
 
 
@@ -307,9 +377,9 @@ def RWCNN_LSTM(input_shape):
 if __name__ == "__main__":
     
     # model = ResNet(c.INPUT_SHPE)
-    # model = vggvox1_cnn((512,299,1))
+    model = vggvox1_cnn((299,40,1))
     # model = Deep_speaker_model(c.INPUT_SHPE)
     # # model = SE_ResNet(c.INPUT_SHPE)
-    model = RWCNN_LSTM((59049,1))
+    # model = RWCNN_LSTM((59049,1))
     print(model.summary())
    

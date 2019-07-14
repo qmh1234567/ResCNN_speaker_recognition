@@ -107,8 +107,9 @@ def get_fft_spectrum(signal):
         signal = np.hstack((signal,np.zeros(singal_len-n_sample)))
     else:
         signal = signal[(n_sample-singal_len)//2:(n_sample+singal_len)//2]
-    # signal *= 2**15
-    # signal = remove_dc_and_dither(signal,c.SR)
+    signal = np.array(signal)
+    signal *= 2**15
+    signal = remove_dc_and_dither(signal,c.SR)
     signal = sigproc.preemphasis(signal,coeff=c.PREEMPHASIS_ALPHA)
     frames = sigproc.framesig(signal,frame_len=c.FRAME_LEN*c.SR,frame_step=c.FRAME_STEP*c.SR,winfunc=np.hamming)
     fft = abs(np.fft.fft(frames,n= c.N_FFT))
