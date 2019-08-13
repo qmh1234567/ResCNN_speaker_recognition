@@ -211,6 +211,7 @@ def SE_ResNet(input_shape):
     x = BatchNormalization(name='bn_fc1')(x)
     x = ELU(name=f'relu_fc1')(x)
 
+
     return Model(inputs=[x_in],outputs=[x],name='SEResNet')
 
 

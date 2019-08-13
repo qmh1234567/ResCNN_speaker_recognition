@@ -50,6 +50,7 @@ class Preprocess():
                                   2:(n_sample+singal_len)//2]
             self.create_pickle(path, wav_arr, sample_rate)
         bar.finish()
+    
 
     def vad_process(self, path):
         # VAD Process
@@ -80,6 +81,7 @@ class Preprocess():
             logmel_feats = logfbank(
                 wav_arr, samplerate=sample_rate, nfilt=self.hparams.spectrogram_scale)
             # print("created logmel feats from audio data. np array of shape:"+str(logmel_feats.shape))
+            
             save_dict["LogMel_Features"] = logmel_feats
 
             if self.hparams.data_type == "vox1" or self.hparams.data_type == "vox2":

@@ -32,7 +32,7 @@ import pickle
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
-config.gpu_options.per_process_gpu_memory_fraction = 0.5
+config.gpu_options.per_process_gpu_memory_fraction = 0.7
 sess = tf.Session(config=config)
 
 
@@ -139,7 +139,6 @@ def Map_label_to_dict(labels):
         labels_to_id[label] = i
         i += 1
     return labels_to_id
-
 
 def load_validation_data(dataset, labels_to_id, num_class):
     (path, labels) = dataset
@@ -308,8 +307,6 @@ def main(typeName):
     # model = models.Deep_speaker_model(c.INPUT_SHPE)
     model = models.SE_ResNet(c.INPUT_SHPE)
     # model = models.Baseline_GRU(c.INPUT_SHPE)
-    # model = models.ResNet_34(c.INPUT_SHPE)
-    # model = models.ResNet_50(c.INPUT_SHPE)
 
     if typeName.startswith('train'):
         if not os.path.exists(c.MODEL_DIR):
@@ -317,22 +314,21 @@ def main(typeName):
         train_dataset, val_dataset = CreateDataset(typeName, split_ratio=0.1)
         nclass = len(set(train_dataset[1]))
         print("nclass = ",nclass)
-
+     
         labels_to_id = Map_label_to_dict(labels=train_dataset[1])
         # add softmax layer
         x = model.output
         x = Dense(nclass, activation='softmax', name=f'softmax')(x)
         model = Model(model.input, x)
-        print(model.summary())
-        # exit()
+        model.summary()
+ 
+        exit()
         # train model
         sgd = optimizers.SGD(lr=c.LEARN_RATE,momentum=0.9) #TIMIT libri-seresnet
-        # sgd = optimizers.Adam(lr=0.001)  #deep speaker
-        # sgd = optimizers.RMSprop(lr=0.01,epsilon=1e-06)
         model.compile(loss='categorical_crossentropy', optimizer=sgd,
                       metrics=['accuracy'])
         model.fit_generator(Batch_generator(train_dataset, labels_to_id, c.BATCH_SIZE, nclass),
-                            steps_per_epoch=len(train_dataset[0])//c.BATCH_SIZE, epochs=100,
+                            steps_per_epoch=len(train_dataset[0])//c.BATCH_SIZE, epochs=50,
                             validation_data=load_validation_data(
                                 val_dataset, labels_to_id, nclass),
                             validation_steps=len(val_dataset[0])//c.BATCH_SIZE,
@@ -344,6 +340,7 @@ def main(typeName):
             EarlyStopping(monitor='val_loss', patience=10),
         ])
     else:
+        model.summary()
         test_dataset, enroll_dataset = CreateDataset(
             typeName, split_ratio=0.5, target=c.TARGET)
         labels_to_id = Map_label_to_dict(labels=enroll_dataset[1])
